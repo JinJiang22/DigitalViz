@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Electricity Generation Worldwide 3D Map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no, width=device-width' />
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+     <!--D3.js-->
+    <script charset="utf-8" src="https://d3js.org/d3.v7.min.js"></script>
+    <!--ECharts-->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <style>
+
+body { margin:0; padding:0; }
+#map { position:absolute; top:0; bottom:0; width:100%; }
+
+/* #container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    } */
+
+/* Echart */
+/* mouseover */
+   #laname {
+    position: absolute;
+    width: 18%;
+    top: 0;
+    right: 0;
+    padding: 10px;
+    color: aliceblue;
+   }
+.map-overlay {
+    font: bold 12px/18px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    position: absolute;
+    width: 26%;
+    top: 0;
+    left: 0;
+    padding: 10px;
+}
+
+.map-overlay .map-overlay-inner {
+    background-color:rgba(255,255,255, 0.7);
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.20);
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.map-overlay table {
+    border: none;
+    width: 100%;
+}
+
+.map-overlay h2 {
+    font:  bold 18px/24px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    /* line-height: 24px; */
+    display: block;
+    margin: 0 0 10px;
+}
+
+.map-overlay h3 {
+    font: bold 16px/24px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    /* line-height: 24px; */
+    display: block;
+    margin: 0 0 10px;
+}
+
+.map-overlay p {
+    line-height: 24px;
+    display: block;
+    margin: 0 0 10px;
+}
+.map-overlay label {
+    font: 12px/18px 'Helvetica Neue' bold, Arial, Helvetica, sans-serif;
+    vertical-align: bottom;
+    margin: 0;
+    padding: 0;
+}
+
+.map-overlay .legend .bar {
+    height: 10px;
+    width: 100%;
+    background: linear-gradient(to right, #FCA107, #7F3121);
+}
+
+.map-overlay input {
+   font: bold 12px/18px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    display: inline;
+    vertical-align: middle;
+    margin: 5px;
+    padding: 0;
+}
+
+.map-overlay p.credit {
+   margin: 5px 0 0 0;
+   padding: 0;
+}
+
+/* radio button */
+.radio-item {
+  display: inline-block;
+  position: relative;
+  padding: 0 6px;
+  margin: 10px 0 0;
+}
+
+.radio-item input[type='radio'] {
+  display: none;
+}
+
+.radio-item label {
+  color: #666;
+  font-weight: normal;
+}
+
+.radio-item label:before {
+  content: " ";
+  display: inline-block;
+  position: relative;
+  top: 5px;
+  margin: 0 5px 0 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 11px;
+  border: 2px solid #004c97;
+  background-color: transparent;
+}
+
+.radio-item input[type=radio]:checked + label:after {
+  border-radius: 11px;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  top: 9px;
+  left: 10px;
+  content: " ";
+  display: block;
+  background: #004c97;
+}
+    </style>
+<style type='text/css'>
+  .my-legend .legend-title {
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 90%;
+    }
+  .my-legend .legend-scale ul {
+    margin: 0;
+    padding: 0;
+    float: left;
+    list-style: none;
+    }
+  .my-legend .legend-scale ul li {
+    display: block;
+    float: left;
+    width: 100px;
+    margin-bottom: 0px;
+    text-align: center;
+    font-size: 80%;
+    list-style: none;
+    }
+  .my-legend ul.legend-labels li span {
+    display: block;
+    float: left;
+    height: 15px;
+    width: 300px;
+    }
+  .my-legend .legend-source {
+    font-size: 70%;
+    color: #999;
+    clear: both;
+    }
+  .my-legend a {
+    color: #777;
+    }
+</style>
+
+</head>
+
+<body>
+
+  <div id='map'></div>
+
+  <div id="container">
+    <div style="position: absolute; background-color:rgba(255,255,255, 0.7);box-shadow:0 1px 2px rgba(0, 0, 0, 0.20);
+top:58%; bottom: 1%; width: 26%; left: 10px; margin: 0;border-radius: 5px;">
+    <div id="main" style="position: relative; height: 100%; width: 100%; left: 5%; top: 10px"></div>
+</div>
+  </div>
+
+
+  <div id="laname"> </div>
+
+  <div class='map-overlay'>
+    <div class='map-overlay-inner'>
+        <h2>Electricity Generation Worldwide 3D Map 2020</h2>
+  
+		<table>
+      <tr><td><p class="cityfly"> <h3>Top Countries: </h3>  
+        <a href="#" class="citylink" id="iceld">Iceland</a> &nbsp;
+        <a href="#" class="citylink" id="nwy">Norway</a> &nbsp;
+        <a href="#" class="citylink" id="qtr">Qatar</a> &nbsp;
+        <a href="#" class="citylink" id="kwt">Kuwait</a> &nbsp;
+        <a href="#" class="citylink" id="cnd">Canada</a> &nbsp;
+        <a href="#" class="citylink" id="swd">Sweden</a></p>
+     </td></tr>
+
+     <div class='my-legend'>
+      <div class='legend-title'> <h3>Per Capital Electricity Generation</h3></div>
+      <div class='legend-scale'>
+        <ul class='legend-labels'>
+          <li><span style='background:linear-gradient(to right,rgba(255,255,255,0.5),#b6d1fb, #4389f9, rgba(4,46,114,0.9));'></span>0</li>
+          <li><span></span>10000</li>
+          <li><span></span>52091(kW)</li>
+        </ul>
+      </div>
+      </div>
+
+      <tr><td>
+            <p> <h3> Power Plants by Fuel Type and Capacity</h3>
+  		<input type="radio" name="layers" id="layer1" value="Coal" checked><label style="color:#17181c;font-weight: 700;" for="layer1"> Coal </label>
+  		<input type="radio" name="layers" id="layer2" value="Oil"><label style="color:#774d04;font-weight: 700;" for="layer2"> Oil </label>
+  		<input type="radio" name="layers" id="layer3" value="Gas"><label style="color:#a130f8;font-weight: 700;" for="layer3"> Gas </label>
+  		<input type="radio" name="layers" id="layer4" value="Hydro"><label style="color:#169ef3;font-weight: 700;" for="layer4"> Hydro </label>
+  		<input type="radio" name="layers" id="layer5" value="Nuclear"><label style="color:#f5290a;font-weight: 700;" for="layer5"> Nuclear </label><br>
+  		<input type="radio" name="layers" id="layer6" value="Solar"><label style="color:#f9e86c;font-weight: 700;" for="layer6"> Solar </label>
+  		<input type="radio" name="layers" id="layer7" value="Waste"><label style="color:#6238fa;font-weight: 700;" for="layer7"> Waste </label>
+  		<input type="radio" name="layers" id="layer8" value="Wind"><label style="color:#1ee4cd;font-weight: 700;" for="layer8"> Wind </label>
+  		<input type="radio" name="layers" id="layer9" value="Geothermal"><label style="color:#f79c1c;font-weight: 700;" for="layer9"> Geothermal </label> <br>
+  		<input type="radio" name="layers" id="layer10" value="Biomass"><label style="color:#05ad0e;font-weight: 700;" for="layer10"> Biomass </label>
+  		<input type="radio" name="layers" id="layer11" value="Other"><label style="color:#66e08e;font-weight: 700;" for="layer11"> Other </label>
+  		<input type="radio" name="layers" id="layer12" value="All" checked><label style="color:#454746; font-weight: 700;" for="layer12"> All &nbsp; &nbsp;</label> 
+  		<!-- <div class="radio-item"> <input type="radio" name="layers" id="layer1" value="Coal" checked><label> Coal </label></div> -->
+        </p>
+         </td>
+         </tr>
+
+         </table>
+         <p class="credit"> Data: <a href="https://www.census.gov/data/tables/time-series/demo/international-programs/historical-est-worldpop.html">The US Census Bureau</a>;
+          <a href="https://www.bp.com/en/global/corporate/energy-economics/statistical-review-of-world-energy.html">The bp's Statistical Review of World Energy</a>;
+          <a href="https://datasets.wri.org/dataset/globalpowerplantdatabase">World Resources Institute</a>
+           &nbsp;
+          Cartography: Jin Jiang </p>
+        </div>
+</div>
+
+<script>
+  // Echart in the left corner.
+  d3.csv(
+  "https://raw.githubusercontent.com/JinJiang22/Data/main/elecgene_2020_top20.csv", d3.autoType).then(
+  function (CountryData) {
+    //initialise ECharts in the Div id=main
+    var myChartEchart = echarts.init(document.getElementById("main"), 
+    // { width: 280, height: 200 }
+    ); //height is used to avoid cut the text on the Xaxis
+   
+    window.addEventListener('resize', function() {
+    myChartEchart.resize();
+  });
+
+    // All the settings of the chart are provided in this variable
+    var option = {
+      title: { //Title and sub-title of the chart
+        //ref https://echarts.apache.org/en/option.html#title
+        text: "Electriciy Generation Ranking 2020",
+    // font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        textStyle: {
+          color: "black",
+          fontSize: 18,
+          fontFamily:'sans-serif',
+          fontWeight: "bold"
+        }
+      },
+
+      xAxis: { //style of the X
+        type: "category",
+        axisLabel: {
+          interval: 0,
+          rotate: 30, //If the label names are too long you can manage this by rotating the label.
+          fontSize: 9
+        }
+      },
+
+      yAxis: { //Style of the Y
+        type: "value",
+        name: "Electriciy Generation per person (Kilowatt-hours)",
+        nameLocation: "end",
+        nameGap: 12,
+        nameTextStyle: {
+          align: "left", 
+          fontSize: 10
+        },
+        // splitNumber: 10,
+        axisLabel:{
+          fontSize: 9
+        }
+      },
+
+      tooltip: { //a tooltip is shown onHover if true
+        show: true
+      },
+
+      dataset: [ //the actual Dataset
+        // ref https://echarts.apache.org/en/option.html#dataset
+        {
+          source: CountryData
+        }
+      ],
+      series: [ //How the dataset is represented
+        {
+          // ref https://echarts.apache.org/en/option.html#series-bar.type
+          type: "bar", //type of chart and style
+          showBackground: true,
+          itemStyle: {
+            color: "rgba(4, 46, 114, 0.6)",
+            // borderColor: "#ffac1f",
+            // borderWidth: 1.5,
+            // borderType: "dashed"
+          },
+          barWidth: "70%",
+          barGap: "20%",
+          //label: labelOption, //option can be coded in external variable, see above. ref https://echarts.apache.org/en/option.html#series-bar.label
+          label: { //a label inside the bar
+            show: true,
+            position: "inside",
+            rotate: 90,
+            align: "left",
+            verticalAlign: "middle",
+            fontSize: 12,
+            //formatter: '{@pop2035} millions', //pop value as strin
+            formatter: function (params) {
+              var elepp2020_float = parseFloat(params.data.elecgene_pp_2020);
+
+              return elepp2020_float ;
+            }
+
+          },
+          encode: { //what value is disply on the X, Y and tooltip (based on the header of the CSV file used)
+            x: "COUNTRY",
+            y: ["elecgene_pp_2020"],
+            tooltip: ["elecgene_pp_2020"]
+          },
+
+          tooltip: {
+            formatter: function (params) {
+              //as pop values are strings, we parsed them to Float to better control the number of decimal places
+              var ele2020_float = parseFloat(params.data.elec_stat_2020);
+              var elepp2020_float = parseFloat(params.data.elecgene_pp_2020);
+
+               return (
+                `${params.name}'s total generation is <br /> ` +
+                ele2020_float.toFixed(2) +
+                ` TWh in 2020.`
+                //                     electricity generation per person :  ` +
+                // elepp2020_float.toFixed(2) +
+                // ` Kilowatt-hrs` 
+
+              ); 
+          }
+          },
+          animationDuration: 2000,
+          animationEasing: "elasticOut" //https://echarts.apache.org/examples/en/editor.html?c=line-easing
+        }
+      ]
+    };
+
+    // All the above is applied to the chart
+    myChartEchart.setOption(option);
+  });
+
+mapboxgl.accessToken = 'pk.eyJ1Ijoiampqam9zaWUiLCJhIjoiY2xkMWFicGhoMjRrMDN3bnZjOXVjdGkzYyJ9.uJL3eMK9Kfec2tbfmmETpg'; // Put your Mapbox Public Access token here
+
+// Load a new map in the 'map' HTML div
+    var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/jjjjosie/cleu7ew58000a01npxm4qdidt', // map background layer location
+    center: [19.5, 47.09], // starting position, near Hungary
+    zoom: 4, // starting zoom
+    pitch: 50 // tilt of the viewpoint in degrees
+    });
+
+
+    map.on('load', function() {
+      // Add standard navigation control
+      map.addControl(new mapboxgl.NavigationControl());
+
+// 1. Base map
+    // Load the electricity generation layer as a fill type
+      map.addLayer({
+        id: 'basemap',
+        type: 'fill',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.4suqa1hr' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'elecgene_2020-6kn5m2', // name of tileset
+        paint: {
+            'fill-color': '#fff',
+                // property: 'Base-elecgene-2020',
+                // type: 'exponential',
+                // stops: [
+                //     [0, '#b6d1fb'],
+                //     [10000, '#4389f9'],
+                //     [52091, '#042e72']]
+            'fill-opacity':0
+              }
+      });
+
+// 2. the hoverlight layer
+map.addLayer({                  // Add the line highlight layer. This layer has a filter, which initially is empty.
+            id: 'HL-elecgene-2020',
+            type: 'line',
+            source: {
+              type: 'vector',
+              url: 'mapbox://jjjjosie.4suqa1hr' // Your Mapbox tileset Map ID
+            },
+            'source-layer': 'elecgene_2020-6kn5m2', // name of tilesets
+            'layout': {
+                'visibility': 'visible'
+            },
+            paint: {
+                'line-color': '#fff',
+                'line-width': 3
+                },
+            filter: ['==','COUNTRY','empty']
+          });
+
+  // mousemove, show country's information  
+//   map.on('mousemove', function(r) {       // This is the main event listner which is triggered when the mouse moves
+//   var la = map.queryRenderedFeatures(r.point, {   // This queries whether the mouse is over an object in the LocalAuthorities layer
+//     layers: ['basemap']
+//   });
+//   console.log(la);
+//   if (la.length==1) {   // This if statement is run when the mouse is over a local authority
+
+//   map.setFilter('HL-elecgene-2020', ['==','COUNTRY',la[0].properties.COUNTRY]);  // Filter the highlight layer to show the local authority outline
+//   console.log(la[0].properties.COUNTRY);
+//   document.getElementById('laname').innerHTML = la[0].properties.COUNTRY; // Change the name in the top left box to show the local authority name
+//   console.log(la[0].id);
+//   console.log(la);
+
+//   } else {
+//   map.setFilter('HL-elecgene-2020', ['==','COUNTRY','null']);
+//   // console.log('No features');
+//   document.getElementById('laname').innerHTML = "Country's Information";
+//   }
+// });
+
+// 3. power station points layer
+    // Load the power station layer. This layer has its opacity set to zero.
+    
+    // 1. Coal
+    map.addLayer({
+        id: 'coal',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset layer
+        'layout': {'visibility': 'visible'},
+        paint: {
+        // 'circle-radius': 3,
+        'circle-color': '#17181c',
+        'circle-opacity': 0.6,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                             // The circle radius varies according to the zoom level and the number of passengers
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Coal']
+      });     
+
+    // 2. Oil
+    map.addLayer({
+        id: 'oil',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset layer
+        'layout': {'visibility': 'visible'},
+        paint: {
+        // 'circle-radius': 3,
+        'circle-color': '#774d04',
+        'circle-opacity': 0.6,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                             // The circle radius varies according to the zoom level and the number of passengers
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Oil']
+      });  
+
+    // // 3. Gas #a130f8
+    map.addLayer({
+        id: 'gas',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset layer
+        'layout': {'visibility': 'visible'},
+        paint: {
+        // 'circle-radius': 3,
+        'circle-color': '#a130f8',
+        'circle-opacity': 0.6,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Gas']
+      }); 
+
+     // 4 hydro #169ef3
+    map.addLayer({
+        id: 'hydro',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        'layout': {'visibility': 'visible'},
+        paint: {
+        'circle-color': '#169ef3',
+        'circle-opacity': 0.95,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Hydro'],
+      });
+
+     // 5 nuclear #f5290a
+       map.addLayer({
+        id: 'nuclear',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#f5290a',
+        'circle-opacity': 0.95,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Nuclear'],
+      });
+
+     // 6 solar #f9e86c
+     map.addLayer({
+        id: 'solar',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#f9e86c',
+        'circle-opacity': 0.6,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Solar'],
+      });
+
+     // 7 waste #6238fa
+     map.addLayer({
+        id: 'waste',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#6238fa',
+        'circle-opacity': 0.6,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Waste'],
+      }); 
+
+     // 8 wind #44f8e3
+     map.addLayer({
+        id: 'wind',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#44f8e3',
+        'circle-opacity': 0.6,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Wind'],
+      });  
+
+     // 9 geothermal #f9a734
+     map.addLayer({
+        id: 'geothermal',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#f9a734',
+        'circle-opacity': 0.95,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Geothermal'],
+      }); 
+
+     // 10 biomass #05ad0e
+     map.addLayer({
+        id: 'biomass',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#05ad0e',
+        'circle-opacity': 0.95,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Biomass'],
+      }); 
+
+     // 11 other #9cecb7
+     map.addLayer({
+        id: 'other',
+        type: 'circle',
+        source: {
+          type: 'vector',
+          url: 'mapbox://jjjjosie.d8il1pvx' // Your Mapbox tileset Map ID
+        },
+        'source-layer': 'powerplant_revised-0k8doe', // name of tileset
+        paint: {
+        'circle-color': '#9cecb7',
+        'circle-opacity': 0.95,
+        'circle-radius': 
+        {property: 'capacity_mw',
+                        stops: [                           
+                            [{zoom: 4, value: 0}, 1],
+                            [{zoom: 4, value: 911}, 3],
+                            [{zoom: 4, value: 6720}, 5],
+                            [{zoom: 12, value: 0}, 5],
+                            [{zoom: 12, value: 911}, 50],
+                            [{zoom: 12, value: 6720}, 100],
+                            ]},
+        },
+        filter: ['==', 'primary_fuel', 'Other'],
+      });  
+         
+// // Add the label layer
+// 	map.addLayer({
+// 		'id': 'labels',
+// 		'type': 'symbol',
+//         source: {
+//           type: 'vector',
+//           url: 'mapbox://duncan2001.b6rqk9s2' // Your Mapbox tileset Map ID
+//         },
+// 		'source-layer': 'LabelCities2-6qmjf4', // name of tilesets
+// 		'layout': {
+// 			'text-field': '{Name2}',
+// 			'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+// 			'text-size': 14
+// 		},
+// 		'paint': {
+// 			'text-color': 'rgba(0,0,0,0.8)',
+// 			'text-halo-color': '#fff',
+// 			'text-halo-width': 1
+// 		}
+// 	});
+     
+
+    //Event listener for layer switch
+    document.getElementById("layer1").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0.7);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer2").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0.7);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer3").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0.9);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer4").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0.95);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer5").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0.95);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer6").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity', 0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0.95);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    // opacity 0.7
+    document.getElementById("layer7").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0.7);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    // opacity 0.7
+    document.getElementById("layer8").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0.7);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer9").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0.95);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer10").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0.95);
+    map.setPaintProperty('other','circle-opacity',0);
+    });
+
+    document.getElementById("layer11").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0);
+    map.setPaintProperty('oil','circle-opacity',0);
+    map.setPaintProperty('gas','circle-opacity',0);
+    map.setPaintProperty('hydro','circle-opacity',0);
+    map.setPaintProperty('nuclear','circle-opacity',0);
+    map.setPaintProperty('solar','circle-opacity',0);
+    map.setPaintProperty('waste','circle-opacity',0);
+    map.setPaintProperty('wind','circle-opacity',0);
+    map.setPaintProperty('geothermal','circle-opacity',0);
+    map.setPaintProperty('biomass','circle-opacity',0);
+    map.setPaintProperty('other','circle-opacity',0.95);
+    });
+
+    document.getElementById("layer12").addEventListener("click", function(){
+    map.setPaintProperty('coal','circle-opacity',0.75);
+    map.setPaintProperty('oil','circle-opacity',0.75);
+    map.setPaintProperty('gas','circle-opacity',0.75);
+    map.setPaintProperty('hydro','circle-opacity',0.75);
+    map.setPaintProperty('nuclear','circle-opacity',0.75);
+    map.setPaintProperty('solar','circle-opacity',0.75);
+    map.setPaintProperty('waste','circle-opacity',0.75);
+    map.setPaintProperty('wind','circle-opacity',0.75);
+    map.setPaintProperty('geothermal','circle-opacity',0.75);
+    map.setPaintProperty('biomass','circle-opacity',0.75);
+    map.setPaintProperty('other','circle-opacity',0.75);
+    });
+
+//Event listener for the zoom to buttons created using a for loop and switch case statement to set lat and long
+var x = document.getElementsByClassName('citylink');
+var i;
+		for (i = 0; i < x.length; i++) {
+			x[i].addEventListener('click', function(e) {
+
+				var lat,long;
+
+				switch(e.target.id) {
+					case "iceld": long=-17.731934; lat=65.090646; break;
+					case "nwy": long=10.415039; lat=62.875188; break;
+					case "cnd": long=-107.991707; lat=61.066692; break;
+					case "qtr": long=51.229529; lat=25.333698; break;
+					case "kwt": long=47.481766; lat=29.31166; break;
+					case "swd": long=16.259766; lat=62.875188; break;
+				}
+
+				map.flyTo({
+					center: [long,lat],
+					zoom: 4,
+					speed: 0.5,
+					pitch: 50
+					});
+			});
+		}
+
+});
+
+// 有点憨,笑死了
+// const popup = new mapboxgl.Popup({ closeOnClick: false })
+//   .setLngLat([19.5, 47.09])
+//   .setHTML('<h1>Hello!</h1>')
+//   .addTo(map);
+
+
+// // Popup for points
+// var popup2 = new mapboxgl.Popup({
+//         closeButton: false,
+//         closeOnClick: false
+//     });
+
+// map.on('mouseenter', ['oil','coal','gas','hydro','nuclear','solar','waste','wind','geothermal','biomass','other'], (e) => {
+//     // Change the cursor style as a UI indicator.
+//     map.getCanvas().style.cursor = 'pointer';
+    
+//     // Copy coordinates array.
+//     const coordinates = e.features[0].geometry.coordinates.slice();
+//     // console.log(e.features[0].properties);
+//     const descr = 'The capacity of this power plant is ' + e.features[0].properties.capacity_mw  
+//     + ' MW.<p> It generated '+ e.features[0].properties.estimated_generation_gwh_2017 + ' gwh (estimated) in 2017.</p>' 
+//       + 'It is owned by ' + e.features[0].properties.owner + '.' ;
+    
+//     // Ensure that if the map is zoomed out such that multiple
+//     // copies of the feature are visible, the popup appears
+//     // over the copy being pointed to.
+//     while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+//     coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+//     }
+    
+//     // Populate the popup and set its coordinates
+//     // based on the feature found.
+//     popup2
+//       .setLngLat(coordinates)
+//       .setHTML(descr)
+//       .addTo(map);
+// });
+ 
+// map.on('mouseleave', ['oil','coal','gas','hydro','nuclear','solar','waste','wind','geothermal','biomass','other'], () => {
+// map.getCanvas().style.cursor = '';
+// popup2.remove();
+// });
+
+
+// Popup for country
+    var popup = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false
+    });
+    map.on('mousemove', function(e) {
+      var ctr = map.queryRenderedFeatures(e.point, {   // This queries whether the mouse is over an object in the LocalAuthorities layer
+    layers: ['basemap']
+  });
+
+  if (ctr.length==1) {   // This if statement is run when the mouse is over a local authority
+
+      map.setFilter('HL-elecgene-2020', ['==','COUNTRY',ctr[0].properties.COUNTRY]);  // Filter the highlight layer to show the local authority outline
+      var description = "<h2>" + ctr[0].properties.COUNTRY + "</h2><p>Total Electricity Generation: </p>"
+        + ctr[0].properties.elec_stat_2020 + " Terawatt-hours. </p><p>Per Capital Generation: </p>" 
+          + ctr[0].properties.elecgene_pp_2020 + " Kilowatt-hours";
+        // console.log(description)
+      // console.log(coord);
+        // console.log(ctr[0].geometry.coordinates);
+      popup
+          .setLngLat(e.lngLat)
+          .setHTML(description)
+          .addTo(map);
+      } else {
+      // map.setFilter('HL-elecgene-2020', ['==','COUNTRY','null']);
+      // console.log('No features');
+      // document.getElementById('laname').innerHTML = "Country's Information";
+      }});
+
+      map.on('mouseleave', 'basemap', function() {
+              map.getCanvas().style.cursor = '';
+              popup.remove();
+      });   
+
+
+      // 固定点popup
+  //   map.on('mousemove', function(e) {
+  //     var ctr = map.queryRenderedFeatures(e.point, {   // This queries whether the mouse is over an object in the LocalAuthorities layer
+  //   layers: ['basemap']
+  // });
+
+  // if (ctr.length==1) {   // This if statement is run when the mouse is over a local authority
+
+  //     map.setFilter('HL-elecgene-2020', ['==','COUNTRY',ctr[0].properties.COUNTRY]);  // Filter the highlight layer to show the local authority outline
+  //     const boudary =['basemap',['==','COUNTRY',ctr[0].properties.COUNTRY]] ;
+  //     // console.log(ctr[0].properties.COUNTRY);
+  //     const coordinates = ctr[0].geometry.coordinates.slice();
+  //       // console.log(coordinates[0][0][0]);  //lng(numeric value)
+  //       // console.log(coordinates[0][0][1]);  //lat
+  //       // console.log(ctr[0].properties);
+  //     const coord =[coordinates[0][0][0],coordinates[0][0][1]];  //create a coordinate veryvery manually, nope!
+  //     // console.log(coord);
+  //     // const coord =JSON.stringify(e.lngLat.wrap()); //this is turn it into text
+  //     // const coord =e.lngLat;
+  //     var description = "<h2>" + ctr[0].properties.COUNTRY + "</h2><p>Total Electricity Generation: </p>"
+  //       + ctr[0].properties.elec_stat_2020 + " Terawatt-hours. </p><p>Per Capital Generation: </p>" 
+  //         + ctr[0].properties.elecgene_pp_2020 + " Kilowatt-hours";
+  //       // console.log(description)
+  //     // console.log(coord);
+  //       // console.log(ctr[0].geometry.coordinates);
+  //     popup
+  //         .setLngLat(coord)
+  //         .setHTML(description)
+  //         .addTo(map);
+  //     } else {
+  //     map.setFilter('HL-elecgene-2020', ['==','COUNTRY','null']);
+  //     // console.log('No features');
+  //     // document.getElementById('laname').innerHTML = "Country's Information";
+  //     }});
+
+  //     map.on('mouseleave', 'basemap', function() {
+  //             map.getCanvas().style.cursor = '';
+  //             popup.remove();
+  //     });   
+
+
+
+
+      
+</script>
+
+</body>
+</html>
